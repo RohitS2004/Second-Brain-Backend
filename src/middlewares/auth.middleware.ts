@@ -17,7 +17,7 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
             .json(<JSON_RESPONSE>{
                 status: "client_error",
                 message: "Unauthorized request!"
-            })
+            }) // json goes in  the response data
             return;
         }
 
@@ -32,6 +32,7 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
                 status: "client_error",
                 message: "Invalid access token!"
             })
+            return;
         }
 
         // @ts-ignore

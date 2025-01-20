@@ -1,9 +1,13 @@
 import Router from "express";
-import { handleUserSignin, handleUserSignout, handleUserSignup } from "../controllers/user.controller";
+import { handleUserInfo, handleUserSignin, handleUserSignout, handleUserSignup } from "../controllers/user.controller";
 import { upload } from "../middlewares/multer.middleware";
 import { verifyJwt } from "../middlewares/auth.middleware";
 
 const router = Router();
+
+// verified routes
+router.route("")
+.get(verifyJwt, handleUserInfo)
 
 // Create the signup route ✅
 // Create the signin route

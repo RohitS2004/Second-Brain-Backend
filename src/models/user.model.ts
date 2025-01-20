@@ -6,9 +6,9 @@ interface User {
     username: string,
     email: string,
     password: string,
-    associatedPosts: mongoose.Schema.Types.ObjectId[],
     profilePicture: string,
     refreshToken?: string,
+    associatedPosts: any[]
 }
 
 const userSchema = new mongoose.Schema<User>({
@@ -32,13 +32,12 @@ const userSchema = new mongoose.Schema<User>({
         type: String,
         required: true,
     },
-    associatedPosts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Post"
-    }],
     refreshToken: {
         type: String,
-    }
+    },
+    associatedPosts: [{
+        type: Object,
+    }]
 }, { timestamps: true })
 
 userSchema.pre("save", async function (next) {

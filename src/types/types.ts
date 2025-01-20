@@ -6,3 +6,5 @@ export interface JSON_RESPONSE {
     message: string,
     data?: Object
 }
+
+export type ContentType = "video" | "document" | "tweet" | "all"

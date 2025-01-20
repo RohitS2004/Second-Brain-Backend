@@ -10,6 +10,23 @@ import { uploadImageToCloudinary } from "../utilities/Cloudinary";
 import { generateAccessAndRefreshToken } from "../utilities/Token";
 import { options } from "../constants/constants";
 
+export const handleUserInfo = async (req: Request, res: Response, next: NextFunction) => {
+    // return the profile picture url and the username
+
+    // @ts-ignore
+    const user = req.user;
+
+    res.status(<STATUS_CODE>200)
+    .json(<JSON_RESPONSE>{
+        status: "success",
+        message: "User info!",
+        data: {
+            username: user.username,
+            profilePicture: user.profilePicture, 
+        }
+    })
+}
+
 export const handleUserSignup = async (
     req: Request,
     res: Response,
@@ -149,9 +166,8 @@ export const handleUserSignin = async (
     // send the tokens in the JSON data, in case user wants to locally save them
 
     try {
-        let username: string = req.body.username;
-        let email: string = req.body.email;
-        let password: string = req.body.password;
+        let { username, email, password } = req.body;
+        console.log(username, email, password);
 
         username = username.toLowerCase().trim();
         email = email.toLowerCase().trim();
@@ -238,15 +254,6 @@ export const handleUserSignout = async (
         }, {
             new: true, // returns the new updated object
         })
-
-        // @ts-ignore
-        // await User.findByIdAndUpdate(req.user._id, {
-        //     $set: {
-        //         refreshToken: undefined // make the refresh token field undefined/empty in the db
-        //     }
-        // }, {
-        //     new: true // return the new updated object
-        // })
 
         res.status(<STATUS_CODE>200)
         .clearCookie("accessToken", options)
