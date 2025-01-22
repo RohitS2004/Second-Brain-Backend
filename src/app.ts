@@ -19,6 +19,8 @@ app.use(cookieParser());
 // Importing the routes
 import userRouter from "./routes/user.routes";
 import contentRouter from "./routes/content.routes";
+import shareRouter from "./routes/share.routes";
 
 app.use(`${API_VERSION}/user`, userRouter);
 app.use(`${API_VERSION}/content`, contentRouter);
+app.use(`${API_VERSION}/share`, shareRouter);
