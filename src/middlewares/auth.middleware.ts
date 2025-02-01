@@ -4,11 +4,6 @@ import { User } from "../models/user.model";
 import jwt from "jsonwebtoken";
 
 export const verifyJwt = async (req: Request, res: Response, next: NextFunction) => {
-    // get the access token from the cookies or the Authorization header
-    // if not token then send a response that it is a unauthorized request
-    // If there is a token then get the user from the database and remove the password and refresh token field from that object
-    // attach this user object in the req 
-    // call the next function
 
     try {
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
