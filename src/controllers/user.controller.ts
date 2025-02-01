@@ -9,9 +9,9 @@ import { User } from "../models/user.model";
 import { uploadImageToCloudinary } from "../utilities/Cloudinary";
 import { generateAccessAndRefreshToken } from "../utilities/Token";
 import { options } from "../constants/constants";
+import jwt from "jsonwebtoken";
 
 export const handleUserInfo = async (req: Request, res: Response, next: NextFunction) => {
-    // return the profile picture url and the username
 
     // @ts-ignore
     const user = req.user;
@@ -32,19 +32,6 @@ export const handleUserSignup = async (
     res: Response,
     next: NextFunction
 ) => {
-    // Get the user data from the frontend
-    // username, email, password
-    // check if anyone of them is empty and run validations on them
-    // If yes then send a response that the username, email or password is mandatory
-    // If not then check if there already exists a user with the provided username or email
-    // If there already exists a user with the given email or username then send a response that a user with similar name already exists
-    // If not then get the local path of the profile picture provided by the user
-    // If there is not any local profile path then send a response that the profile picture is mandatory
-    // If there is a local profile picture path then upload that image to the cloudinary and get the public url for that image
-    // If the public profile image url is not present then send a response that the upload to cloudinary has failed please try again
-    // If we have a public url for the profile image than create a user object
-    // Now create the user in the database with the help of the User model
-    // If the user is created successfully then remove the refresh token and the password field from the created user and send the rest of the info to the user in the response
 
     try {
         let { username, email, password } = req.body;
@@ -98,10 +85,6 @@ export const handleUserSignup = async (
             profilePicturePublicUrl = await uploadImageToCloudinary(
                 profilePictureLocalPath
             );
-            // console.log(
-            //     "Profile picture url at line 81 approx: ",
-            //     profilePicturePublicUrl
-            // );
         }
 
         if (!profilePicturePublicUrl) {
@@ -123,7 +106,6 @@ export const handleUserSignup = async (
         const user = await User.findById(createdUser._id).select(
             "-password -refreshToken"
         );
-        // console.log("Username at line 103 approx: ", user?.username);
 
         if (!user) {
             res.status(<STATUS_CODE>500).json(<JSON_RESPONSE>{
@@ -153,17 +135,6 @@ export const handleUserSignin = async (
     res: Response,
     next: NextFunction
 ) => {
-    // get the user details from the frontend
-    // username or email based login and the password
-    // run the validations on the provided data
-    // check if there exists a user in the database or not
-    // if there does not exists a user in the database then send a response to the user that the user with the provided email and password does not exists
-    // if yes, there exists a user with the given username or email then validate the password from the password stored in the database
-    // if the validation is false then send a response that the password provided is incorrect
-    // if the validation is true then, generate tokens
-    // generate the access and refresh tokens for the user and save the refresh token in the database with validateBeforeSave set as false
-    // then send the tokens in the cookies to the frontend both tokens
-    // send the tokens in the JSON data, in case user wants to locally save them
 
     try {
         let { username, email, password } = req.body;
@@ -240,10 +211,6 @@ export const handleUserSignout = async (
     res: Response,
     next: NextFunction
 ) => {
-    // What is the main purpose of signout? To clear the access and refresh token from the cookies and from the database also
-    // Get the user object from the req parameter
-    // remove the refresh token from the db
-    // clear the cookies
 
     try {
         // @ts-ignore
@@ -272,6 +239,89 @@ export const handleUserSignout = async (
     }
 };
 
-export const handleBothTokenRefresh = async () => {
+export const handleBothTokenRefresh = async (req: Request, res: Response, next: NextFunction) => {
     
+    try {
+        const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+        if (!incomingRefreshToken) {
+            res.status(<STATUS_CODE>400)
+            .json(<JSON_RESPONSE>{
+                status: "client_error",
+                message: "Invalid request"
+            })
+            return;
+        }
+
+        const decodedInfo = jwt.verify(incomingRefreshToken, String(process.env.REFRESH_TOKEN_SECRET));
+
+        if (!decodedInfo) {
+            res.status(<STATUS_CODE>400)
+            .json(<JSON_RESPONSE>{
+                status: "client_error",
+                message: "Invalid request!"
+            })
+            return;
+        }
+
+        // @ts-ignore
+        const user = await User.findById(decodedInfo._id);
+
+        if (!user) {
+            res.status(<STATUS_CODE>400)
+            .json(<JSON_RESPONSE>{
+                status: "client_error",
+                message: "Invalid request!"
+            })
+            return;
+        }
+
+        if (user.refreshToken !== incomingRefreshToken) {
+            res.status(<STATUS_CODE>400)
+            .json(<JSON_RESPONSE>{
+                status: "client_error",
+                message: "The refresh token has expired please login in again!"
+            })
+            return;
+        }
+
+        const tokens = await generateAccessAndRefreshToken(user._id);
+
+        const generatedAccessToken = tokens?.generatedAccessToken;
+        const generatedRefreshToken = tokens?.generatedRefreshToken;
+
+        // We have to send the user data like username and user profile picture also to the frontend
+        res
+        .cookie("accessToken", generatedAccessToken)
+        .cookie("refreshToken", generatedRefreshToken)
+        .status(<STATUS_CODE>200)
+        .json(<JSON_RESPONSE>{
+            status: "success",
+            message: "Token refresh successfully!",
+            data: {
+                username: user.username,
+                profilePicture: user.profilePicture,
+            }
+        })
+
+
+    }
+    catch (error: any) {
+        res.status(<STATUS_CODE>500)
+        .json(<JSON_RESPONSE>{
+            status: "server_error",
+            message: "Something went wrong while refreshing the tokens!"
+        })
+    }
 }
+
+
+// Handle user signout ✅
+// Handle the Token refresh once the token gets expired and user have a valid refresh token stored in his database
+// Refactor the code, remove any extra code which is of no use
+// Add framer motion little bit
+// Handle the AI feature
+
+// * What is AI feature
+// There should be a chat model like chatgpt through which the user can ask questions related to his brain and also he will be able to ask the chat bot to summarize his brain and tell me about all the posts related to Elon Musk things like that.
+

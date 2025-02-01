@@ -99,7 +99,8 @@ export const handleCreatePost = async (
         const title: string = req.body.title;
         const description: string = req.body.description;
         const link: string = req.body.link.toLowerCase();
-        const tagsAssociated: string[] = JSON.parse(req.body.tagsAssociated);
+        // @ts-ignore
+        const tagsAssociated: string[] = JSON.parse(req.body.tagsAssociated).filter(tag => tag !== "");
         const category: CATEGORIES = req.body.category;
 
         if (!title || !category) {

@@ -9,6 +9,7 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
     // If there is a token then get the user from the database and remove the password and refresh token field from that object
     // attach this user object in the req 
     // call the next function
+
     try {
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
         
@@ -18,6 +19,16 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
                 status: "client_error",
                 message: "Unauthorized request!"
             }) // json goes in  the response data
+            return;
+        }
+
+        if (token.exp < Math.floor(Date.now() / 1000)) {
+            // Token has expired
+            res.status(<STATUS_CODE>408)
+            .json(<JSON_RESPONSE>{
+                status: "client_error",
+                message: "Token has expired!"
+            })
             return;
         }
 

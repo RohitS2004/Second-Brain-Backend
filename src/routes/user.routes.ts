@@ -1,5 +1,5 @@
 import Router from "express";
-import { handleUserInfo, handleUserSignin, handleUserSignout, handleUserSignup } from "../controllers/user.controller";
+import { handleBothTokenRefresh, handleUserInfo, handleUserSignin, handleUserSignout, handleUserSignup } from "../controllers/user.controller";
 import { upload } from "../middlewares/multer.middleware";
 import { verifyJwt } from "../middlewares/auth.middleware";
 
@@ -26,5 +26,8 @@ router.route("/signin")
 
 router.route("/signout")
 .post(verifyJwt, handleUserSignout);
+
+router.route("/refresh-tokens")
+.post(handleBothTokenRefresh);
 
 export default router;
